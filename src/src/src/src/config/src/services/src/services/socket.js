@@ -1,1 +1,0 @@
-import { io } from 'socket.io-client'; let socket=null; export const connectSocket=()=>{ const token=localStorage.getItem('kss_token'); const url=import.meta.env.VITE_API_URL||'http://localhost:5000'; socket=io(url,{auth:{token}}); return socket }; export const getSocket=()=>socket;
