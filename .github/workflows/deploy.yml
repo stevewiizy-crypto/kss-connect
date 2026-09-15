@@ -1,4 +1,5 @@
-name: build
+name: KSS Connect Build Check
+
 on:
   push:
     branches: [main]
@@ -8,23 +9,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Client
+      - name: Check Client
         working-directory:./client
-        run: npm install
+        run: |
+          npm install
+          npm run build
 
-      - name: Build Client
-        working-directory:./client
-        run: npm run build
-        env:
-          VITE_ONLINE_API_URL: https://your-backend.onrender.com
-          VITE_LOCAL_API_URL: http://192.168.1.100:5000
-
-      - name: Install Server
+      - name: Check Server
         working-directory:./server
         run: npm install
