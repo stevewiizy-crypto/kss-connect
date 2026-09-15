@@ -1,2 +1,2 @@
 # kss-connect
-Communication app For our school 🏫
+KSS Connect project foundation.
