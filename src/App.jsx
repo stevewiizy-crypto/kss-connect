@@ -1,51 +1,30 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './supabaseClient.js'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { detectConnectionMode } from './services/connectionMode.js'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import Chats from './pages/Chats.jsx'
 
 export default function App(){
-  const [user,setUser] = useState(null)
-  const [email,setEmail] = useState('')
-  const [password,setPassword] = useState('')
-  const [loading,setLoading] = useState(false)
-  const [mode,setMode] = useState('login')
-
+  const [mode, setMode] = useState({ label:'Detecting...', color:'#666' })
+  
   useEffect(()=>{
-    supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null))
-    const {data:listener} = supabase.auth.onAuthStateChange((e,session)=>setUser(session?.user||null))
-    return ()=>listener.subscription.unsubscribe()
+    detectConnectionMode().then(setMode)
+    const id = setInterval(()=> detectConnectionMode().then(setMode), 10000)
+    return ()=> clearInterval(id)
   },[])
 
-  const handleAuth = async()=>{
-    setLoading(true)
-    try{
-      if(mode==='login'){
-        const {error} = await supabase.auth.signInWithPassword({email,password})
-        if(error) alert(error.message)
-      }else{
-        const {error} = await supabase.auth.signUp({email,password})
-        if(error) alert(error.message)
-        else alert('Check email! Account created!')
-      }
-    }finally{setLoading(false)}
-  }
-
-  const handleLogout = async()=>{ await supabase.auth.signOut(); setUser(null) }
-
-  if(user){
-    return <div className="card">
-      <h2>KSS CONNECT LIVE! 🚀</h2>
-      <p>Welcome: <b>{user.email}</b></p>
-      <p style={{color:'green'}}>CEO, your app is WORKING!</p>
-      <button onClick={handleLogout}>Logout</button>
-      <p style={{marginTop:20}}>Next: Dashboard, Students, Payments</p>
-    </div>
-  }
-
-  return <div className="card">
-    <h2>KSS CONNECT</h2>
-    <p>{mode==='login'?'Login to continue':'Create account'}</p>
-    <input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
-    <input type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} />
-    <button onClick={handleAuth} disabled={loading}>{loading?'Wait...':mode==='login'?'Login':'Sign Up'}</button>
-    <p style={{marginTop:12}}><a href="#" onClick={()=>setMode(mode==='login'?'signup':'login')}>{mode==='login'?'Need account? Sign Up':'Have account? Login'}</a></p>
-  </div>
-                                                      }
+  return (
+    <BrowserRouter>
+      <div style={{background:mode.color, color:'white', padding:'6px', textAlign:'center', fontWeight:'bold', fontSize:'13px'}}>
+        {mode.label} | KSS CONNECT • Kingston SS • Buikwe
+      </div>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/chats" element={<Chats />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
