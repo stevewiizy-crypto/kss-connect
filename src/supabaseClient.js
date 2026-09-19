@@ -1,13 +1,23 @@
-import { createClient } from "@supabase/supabase-js";
+// src/supabaseClient.js
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { createClient } from '@supabase/supabase-js'
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Supabase environment variables are missing.");
-}
+const SUPABASE_URL =
+  'https://snrdudhxjbnxwcwunhbu.supabase.co'
+
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
 export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-);
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  }
+)
+
+export default supabase
