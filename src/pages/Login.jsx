@@ -1,21 +1,84 @@
 import { useState } from 'react'
-import api from '../services/api.js'
 import { Link, useNavigate } from 'react-router-dom'
+import { supabase } from '../supabaseClient'
 
-export default function Login(){
-  const [email,setEmail]=useState(''),[password,setPassword]=useState('')
-  const nav=useNavigate()
-  async function submit(e){
+export default function Login() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const nav = useNavigate()
+
+  async function submit(e) {
     e.preventDefault()
-    try{
-      const res=await api.post('/auth/login',{email,password})
-      localStorage.setItem('kss_token',res.data.token)
-      localStorage.setItem('kss_user',JSON.stringify(res.data.user))
+
+    setError('')
+    setLoading(true)
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+
+      if (error) {
+        throw error
+      }
+
+      if (!data.user) {
+        throw new Error('Login was not completed.')
+      }
+
+      localStorage.setItem('kss_user', JSON.stringify(data.user))
+
       nav('/chats')
-    }catch(err){alert(err.response?.data?.message||'Login failed — backend not yet deployed')}
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your email and password.')
+    } finally {
+      setLoading(false)
+    }
   }
-  return <div className="card"><h2>KSS CONNECT Login</h2><p>Kingston SS — Buikwe</p>
-  <form onSubmit={submit}><input placeholder="school email" value={email} onChange={e=>setEmail(e.target.value)}/>
-  <input type="password" placeholder="password" value={password} onChange={e=>setPassword(e.target.value)}/>
-  <button>Login</button></form><p><Link to="/register">No account? Register</Link></p></div>
-                                                                                                }
+
+  return (
+    <div className="card">
+      <h2>KSS CONNECT Login</h2>
+
+      <p>Kingston SS — Buikwe</p>
+
+      {error && (
+        <p style={{ color: 'red' }}>
+          {error}
+        </p>
+      )}
+
+      <form onSubmit={submit}>
+        <input
+          type="email"
+          placeholder="school email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <input
+          type="password"
+          placeholder="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <button type="submit" disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+      </form>
+
+      <p>
+        <Link to="/register">
+          No account? Register
+        </Link>
+      </p>
+    </div>
+  )
+                 }
